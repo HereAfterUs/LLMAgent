@@ -8,3 +8,4 @@ streamlit==1.36.0
 paddlepaddle
 setuptools
 pyjwt
+httpx_sse
