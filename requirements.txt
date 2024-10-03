@@ -3,7 +3,7 @@ langchain-core==0.3.7
 numpy==1.26.0
 paddleocr==2.8.1
 streamlit==1.36.0
-paddlepaddle
+paddlepaddle==2.5.2
 setuptools
 pyjwt
 httpx_sse
