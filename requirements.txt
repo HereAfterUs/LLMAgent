@@ -7,3 +7,4 @@ paddleocr==2.8.1
 streamlit==1.36.0
 paddlepaddle
 setuptools
+pyjwt
