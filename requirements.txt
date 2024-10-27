@@ -8,3 +8,4 @@ setuptools
 pyjwt
 httpx_sse
 zhipuai==2.0.1
+pathlib
