@@ -7,3 +7,4 @@ paddlepaddle==2.5.2
 setuptools
 pyjwt
 httpx_sse
+zhipuai
