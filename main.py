@@ -3,7 +3,7 @@ import streamlit as st
 from agents.learning_partner_chinese import get_response as student_response
 from agents.teaching_assistant import get_response as teacher_response
 from agents.data_analysis import get_response as data_analysis_response
-from agents.essay_review import process_image_and_evaluate
+from agents.essay_review import process_image_and_evaluate  # 确保导入正确的函数
 
 # 确保必要的文件夹存在
 if not os.path.exists("image"):
@@ -29,7 +29,7 @@ if "last_page" not in st.session_state:
 if st.session_state["last_page"] != page:
     st.session_state["messages"] = [{"role": "ai", "content": "很高兴为您服务🤖"}]  # 初始化消息记录
     st.session_state["last_page"] = page  # 更新当前页面状态
-    st.session_state["uploaded_file_path"] = None  # 重置上传的文件路径
+    st.session_state["uploaded_file_paths"] = None  # 重置上传的文件路径
 
 
 # 聊天界面
@@ -83,18 +83,22 @@ def data_analysis_interface():
         st.chat_message(message["role"]).write(message["content"])
 
     # 文件上传组件
-    uploaded_file = st.file_uploader(
+    uploaded_files = st.file_uploader(
         "请上传需要分析的文件（支持 PDF、Excel、Word 等）",
         type=["pdf", "docx", "doc", "xlsx", "xls", "csv", "txt", "md", "ppt", "pptx", "png", "jpg", "jpeg", "bmp",
-              "gif"]
+              "gif"],
+        accept_multiple_files=True  # 允许多文件上传
     )
 
-    if uploaded_file is not None:
-        # 保存上传的文件
-        file_path = os.path.join("uploaded_files", uploaded_file.name)
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.session_state["uploaded_file_path"] = file_path
+    if uploaded_files:
+        file_paths = []
+        for uploaded_file in uploaded_files:
+            # 保存上传的文件
+            file_path = os.path.join("uploaded_files", uploaded_file.name)
+            with open(file_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            file_paths.append(file_path)
+        st.session_state["uploaded_file_paths"] = file_paths
         st.success("文件上传成功！")
 
     # 聊天输入框
@@ -103,12 +107,14 @@ def data_analysis_interface():
         # 更新消息记录
         st.session_state["messages"].append({"role": "human", "content": user_input})
         st.chat_message("human").write(user_input)
+        # 获取上传的文件路径列表
+        file_paths = st.session_state.get("uploaded_file_paths")
         # 生成响应
         with st.spinner("正在思考中🙃"):
             response = data_analysis_response(
                 "data_analysis_session",
                 user_input,
-                st.session_state.get("uploaded_file_path")
+                file_paths
             )
         st.session_state["messages"].append({"role": "ai", "content": response})
         st.chat_message("ai").write(response)
