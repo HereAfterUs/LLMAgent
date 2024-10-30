@@ -33,30 +33,10 @@ if st.session_state["last_page"] != page:
 
 
 # 聊天界面
-def chat_interface(agent_response_function, session_id, input_key, allow_file_upload=False):
+def chat_interface(agent_response_function, input_key):
     # 显示历史聊天记录
     for message in st.session_state["messages"]:
         st.chat_message(message["role"]).write(message["content"])
-
-    # 文件上传组件（可选）
-    if allow_file_upload:
-        uploaded_files = st.file_uploader(
-            "请上传相关的文件（支持 PDF、Word 等）",
-            type=["pdf", "docx", "doc", "txt"],
-            accept_multiple_files=True
-        )
-        if uploaded_files:
-            file_paths = []
-            for uploaded_file in uploaded_files:
-                # 保存上传的文件
-                file_path = os.path.join("uploaded_files", uploaded_file.name)
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                file_paths.append(file_path)
-            st.session_state["uploaded_file_paths"] = file_paths
-            st.success("文件上传成功")
-    else:
-        file_paths = None  # 如果不允许文件上传，file_paths 设为 None
 
     # 用户输入框，指定唯一的 key
     user_input = st.chat_input(placeholder="请输入...", key=input_key)
@@ -64,16 +44,9 @@ def chat_interface(agent_response_function, session_id, input_key, allow_file_up
         # 更新消息记录
         st.session_state["messages"].append({"role": "human", "content": user_input})
         st.chat_message("human").write(user_input)
-        # 获取上传的文件路径列表
-        if allow_file_upload:
-            file_paths = st.session_state.get("uploaded_file_paths", None)
-            # 生成响应，传递 file_paths
-            with st.spinner("正在思考中🙃"):
-                response = agent_response_function(session_id, user_input, file_paths)
-        else:
-            # 生成响应，不传递 file_paths
-            with st.spinner("正在思考中🙃"):
-                response = agent_response_function(session_id, user_input)
+        # 生成响应
+        with st.spinner("正在思考中🙃"):
+            response = agent_response_function("session_id", user_input)
         st.session_state["messages"].append({"role": "ai", "content": response})
         st.chat_message("ai").write(response)
 
@@ -126,7 +99,7 @@ def data_analysis_interface():
                 f.write(uploaded_file.getbuffer())
             file_paths.append(file_path)
         st.session_state["uploaded_file_paths"] = file_paths
-        st.success("文件上传成功")
+        st.success("文件上传成功！")
 
     # 聊天输入框
     user_input = st.chat_input(placeholder="请输入...", key="data_analysis_input")
@@ -150,11 +123,10 @@ def data_analysis_interface():
 # 根据选择的页面展示不同内容
 if page == "虚拟教师":
     st.header("虚拟教师")
-    chat_interface(student_response, session_id="student_session", input_key="student_input")
+    chat_interface(student_response, input_key="student_input")
 elif page == "教学助理":
     st.header("教学助理")
-    chat_interface(teacher_response, session_id="teaching_assistant_session", input_key="teacher_input",
-                   allow_file_upload=True)
+    chat_interface(teacher_response, input_key="teacher_input")
 elif page == "作文评分（OCR）":
     ocr_interface()
 elif page == "数据分析":
